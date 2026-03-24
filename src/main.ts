@@ -1,4 +1,4 @@
-import uploadRouter from "./routes/upload";
+import uploadRouter from "./routes/upload.js";
 import cors from "cors";
 import { RoomConfiguration } from "@livekit/protocol";
 import bodyParser from "body-parser";

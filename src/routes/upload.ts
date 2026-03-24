@@ -1,17 +1,18 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import multer from "multer";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2 } from "../lib/r2";
+import { r2 } from "../lib/r2.js";
 
 const router = Router();
 const upload = multer();
 
-router.post("/", upload.single("file"), async (req: Request, res: Response) => {
+router.post("/", upload.single("file"), async (req, res): Promise<void> => {
   try {
     const file = req.file;
 
     if (!file) {
-      return res.status(400).json({ error: "No file uploaded" });
+      res.status(400).json({ error: "No file uploaded" });
+      return;
     }
 
     const key = `uploads/${Date.now()}-${file.originalname}`;
@@ -27,10 +28,12 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 
     const url = `${process.env.VITE_CLOUDFLARE_R2_PUBLIC_URL}/${key}`;
 
-    return res.json({ url });
+    res.json({ url });
+    return;
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: "Upload failed" });
+    res.status(500).json({ error: "Upload failed" });
+    return;
   }
 });
 
