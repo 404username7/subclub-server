@@ -57,7 +57,6 @@ function createToken(request: TokenRequest) {
 
 const app = express();
 
-// CORS FIRST
 app.use(
   cors({
     origin: "*",
@@ -91,5 +90,4 @@ app.post("/createToken", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
-});
 });
