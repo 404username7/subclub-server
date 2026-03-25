@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h2>SubClub Upload Test</h2>
-    <input type="file" id="fileInput" />
-    <button id="uploadBtn">Upload</button>
-    <pre id="output"></pre>
+<body>
+  <h2>SubClub Upload Test</h2>
+  <input type="file" id="fileInput" />
+  <button id="uploadBtn">Upload</button>
+  <pre id="output"></pre>
 
-    <script>
-      const output = document.getElementById("output");
-      const button = document.getElementById("uploadBtn");
-      const input = document.getElementById("fileInput");
+  <script>
+    const output = document.getElementById("output");
+    const button = document.getElementById("uploadBtn");
+    const input = document.getElementById("fileInput");
 
-      button.addEventListener("click", async () => {
-        const file = input.files[0];
-        if (!file) {
-          output.textContent = "Pick a file first.";
-          return;
-        }
+    button.addEventListener("click", async () => {
+      const file = input.files[0];
 
-        const formData = new FormData();
-        formData.append("file", file);
+      if (!file) {
+        output.textContent = "Pick a file first.";
+        return;
+      }
 
-        output.textContent = "Uploading...";
+      const formData = new FormData();
+      formData.append("file", file);
 
-        try {
-          const res = await fetch("https://subclub-server-production-2cf5.up.railway.app/api/upload", {
-            method: "POST",
-            body: formData
-          });
+      output.textContent = "Uploading...";
 
-          const data = await res.json();
-          output.textContent = JSON.stringify(data, null, 2);
-        } catch (err) {
-          output.textContent = "Upload failed: " + err.message;
-        }
-      });
-    </script>
-  </body>
+      try {
+        const res = await fetch("https://subclub-server-production-2cf5.up.railway.app/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const text = await res.text();
+        output.textContent = `Status: ${res.status}\n\n${text}`;
+      } catch (err) {
+        output.textContent = "Upload failed: " + err.message;
+      }
+    });
+  </script>
+</body>
 </html>
