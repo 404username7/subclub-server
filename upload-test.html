@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>SubClub Upload Test</h2>
+    <input type="file" id="fileInput" />
+    <button id="uploadBtn">Upload</button>
+    <pre id="output"></pre>
+
+    <script>
+      const output = document.getElementById("output");
+      const button = document.getElementById("uploadBtn");
+      const input = document.getElementById("fileInput");
+
+      button.addEventListener("click", async () => {
+        const file = input.files[0];
+        if (!file) {
+          output.textContent = "Pick a file first.";
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        output.textContent = "Uploading...";
+
+        try {
+          const res = await fetch("https://subclub-server-production-2cf5.up.railway.app/api/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await res.json();
+          output.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          output.textContent = "Upload failed: " + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>
