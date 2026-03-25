@@ -36,6 +36,11 @@ const app = express();
 app.use(cors({
     origin: "*",
 }));
+// request logger
+app.use((req, _res, next) => {
+    console.log(`[REQ] ${req.method} ${req.originalUrl}`);
+    next();
+});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/upload", uploadRouter);
@@ -55,6 +60,11 @@ app.post("/createToken", async (req, res) => {
         console.error("Error generating token:", err);
         res.status(500).send({ message: "Generating token failed" });
     }
+});
+// global error handler
+app.use((err, _req, res, _next) => {
+    console.error("UNCAUGHT APP ERROR:", err);
+    res.status(500).json({ error: "Internal server error" });
 });
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
