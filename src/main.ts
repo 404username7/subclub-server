@@ -68,10 +68,12 @@ app.use((req, _res, next) => {
   next();
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({ origin: "*" }));
 
 app.use("/api/upload", uploadRouter);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (_req, res) => {
   res.send("SubClub server running 🚀");

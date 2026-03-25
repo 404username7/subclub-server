@@ -1,7 +1,6 @@
 import uploadRouter from "./routes/upload.js";
 import cors from "cors";
 import { RoomConfiguration } from "@livekit/protocol";
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import express from "express";
 import { AccessToken } from "livekit-server-sdk";
@@ -41,9 +40,10 @@ app.use((req, _res, next) => {
     console.log(`[REQ] ${req.method} ${req.originalUrl}`);
     next();
 });
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({ origin: "*" }));
 app.use("/api/upload", uploadRouter);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.get("/", (_req, res) => {
     res.send("SubClub server running 🚀");
 });
