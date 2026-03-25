@@ -57,11 +57,23 @@ function createToken(request: TokenRequest) {
 
 const app = express();
 
-app.use("/api/upload", uploadRouter);
-app.use(cors());
-app.use(bodyParser.json());
+// CORS FIRST
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
-const port = 3000;
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use("/api/upload", uploadRouter);
+
+app.get("/", (_req, res) => {
+  res.send("SubClub server running 🚀");
+});
+
+const port = Number(process.env.PORT) || 3000;
 
 app.post("/createToken", async (req, res) => {
   const body = req.body ?? {};
