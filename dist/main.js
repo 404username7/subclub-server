@@ -33,10 +33,17 @@ function createToken(request) {
     return at.toJwt();
 }
 const app = express();
-app.use("/api/upload", uploadRouter);
-app.use(cors());
+// CORS FIRST
+app.use(cors({
+    origin: "*",
+}));
 app.use(bodyParser.json());
-const port = 3000;
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use("/api/upload", uploadRouter);
+app.get("/", (_req, res) => {
+    res.send("SubClub server running 🚀");
+});
+const port = Number(process.env.PORT) || 3000;
 app.post("/createToken", async (req, res) => {
     const body = req.body ?? {};
     try {
