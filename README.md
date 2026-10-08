@@ -1,91 +1,55 @@
-<<<<<<< HEAD
-<a href="https://livekit.io/">
-  <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
-</a>
+# SubClub server
 
-# Node Token Server
+This server verifies Supabase sign-in tokens, stores private image uploads in Cloudflare R2, and creates short-lived LiveKit room tokens.
 
-<p>
-  <a href="https://cloud.livekit.io/projects/p_/sandbox"><strong>Deploy a sandbox app</strong></a>
-  •
-  <a href="https://docs.livekit.io">LiveKit Docs</a>
-  •
-  <a href="https://livekit.io/cloud">LiveKit Cloud</a>
-  •
-  <a href="https://blog.livekit.io/">Blog</a>
-</p>
+## Required environment variables
 
-A basic LiveKit token server using Node + TypeScipt. For details on generating tokens, see our [documentation](https://docs.livekit.io/home/server/generating-tokens).
+Copy `.env.example` to `.env` for local development. In Railway, add the same names under the service's Variables page. Never put real secrets in the repository or browser code.
 
-## Dev Setup
+- `SUPABASE_URL` and `SUPABASE_ANON_KEY`: verify a user's Supabase access token.
+- `CLOUDFLARE_R2_ACCOUNT_ID`, `CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY`, and `CLOUDFLARE_R2_BUCKET_NAME`: store uploads in a **private** R2 bucket.
+- `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET`: create LiveKit participant tokens. `LIVEKIT_URL` is the LiveKit server URL sent to the browser.
+- `CORS_ORIGINS`: exact frontend origins, separated by commas. Example: `https://subclubx.com,https://www.subclubx.com`.
 
-Clone the repository and install dependencies:
+The server will not start if R2 credentials are missing. Uploads need R2; live sessions need LiveKit; both features need Supabase.
 
-```console
-cd token-server-node
+## Supabase access policy
+
+The token route reads only server-managed `app_metadata`; it ignores user-editable profile metadata.
+
+- A creator needs `app_metadata.subclub_role` set to `creator`.
+- A viewer needs `app_metadata.subclub_accessible_creator_ids` set to an array of creator user IDs they may watch, for example `['creator-user-uuid']`.
+
+Until these values are populated by a trusted server/admin process, the server rejects host and viewer tokens. Do not accept these permissions from the browser. After changing a user's app metadata, have them sign out and back in so Supabase issues a fresh access token.
+
+This is a starter authorization rule. If access depends on a per-creator subscription stored in a database table, replace the viewer allow-list check with a server-side subscription lookup before launch.
+
+## API
+
+### Upload an image
+
+`POST /api/upload`, authenticated with `Authorization: Bearer <Supabase access token>`. Send `multipart/form-data` with one `file` field. JPG, PNG, WEBP, or GIF images up to 10 MB are accepted. The response contains an R2 `key`, not a public URL: the bucket stays private. The frontend must store that key. A separate authorized read/signed-URL route is still needed before private uploads can be displayed to other users.
+
+### Get a LiveKit token
+
+`POST /api/livekit/token`, authenticated with the same bearer token.
+
+Host body: `{"role":"host"}`. The caller must have creator metadata.
+
+Viewer body: `{"role":"viewer","creatorId":"creator-user-uuid"}`. The creator ID must be in the caller's server-managed access list. Host tokens can publish; viewer tokens cannot. Tokens expire after 15 minutes.
+
+### Health check
+
+`GET /healthz` returns `{"ok":true}`.
+
+## Run and deploy
+
+Use Node.js 20 or newer.
+
+```sh
 pnpm install
+pnpm build
+pnpm start
 ```
 
-Set up the environment by copying `.env.example` to `.env.local` and filling in the required values:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-
-You can also do this automatically using the LiveKit CLI:
-
-```bash
-lk app env
-```
-
-Build and run the server:
-
-```console
-pnpm build && pnpm start
-```
-=======
-<a href="https://livekit.io/">
-  <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
-</a>
-
-# Node Token Server
-
-<p>
-  <a href="https://cloud.livekit.io/projects/p_/sandbox"><strong>Deploy a sandbox app</strong></a>
-  •
-  <a href="https://docs.livekit.io">LiveKit Docs</a>
-  •
-  <a href="https://livekit.io/cloud">LiveKit Cloud</a>
-  •
-  <a href="https://blog.livekit.io/">Blog</a>
-</p>
-
-A basic LiveKit token server using Node + TypeScipt. For details on generating tokens, see our [documentation](https://docs.livekit.io/home/server/generating-tokens).
-
-## Dev Setup
-
-Clone the repository and install dependencies:
-
-```console
-cd token-server-node
-pnpm install
-```
-
-Set up the environment by copying `.env.example` to `.env.local` and filling in the required values:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-
-You can also do this automatically using the LiveKit CLI:
-
-```bash
-lk app env
-```
-
-Build and run the server:
-
-```console
-pnpm build && pnpm start
-```
->>>>>>> 160835f930c73ba649055a5bb404abe89e7e6f35
+For Railway, set the build command to `pnpm build` and the start command to `pnpm start`. After deploying, open `/healthz`. Then connect the frontend using the API routes above and send the signed-in user's Supabase access token. The frontend must store the returned R2 key; it will need an authorized read/signed-URL route before it can display private uploaded files.

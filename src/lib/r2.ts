@@ -1,18 +1,18 @@
 import { S3Client } from "@aws-sdk/client-s3";
 
-const accountId = process.env.CLOUDFLARE_R2_ACCOUNT_ID;
-const accessKeyId = process.env.CLOUDFLARE_R2_ACCESS_KEY_ID;
-const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY;
-
-if (!accountId || !accessKeyId || !secretAccessKey) {
-  throw new Error("Missing Cloudflare R2 environment variables");
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required environment variable: ${name}`);
+  return value;
 }
+
+export const r2Bucket = () => required("CLOUDFLARE_R2_BUCKET_NAME");
 
 export const r2 = new S3Client({
   region: "auto",
-  endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+  endpoint: `https://${required("CLOUDFLARE_R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`,
   credentials: {
-    accessKeyId,
-    secretAccessKey,
+    accessKeyId: required("CLOUDFLARE_R2_ACCESS_KEY_ID"),
+    secretAccessKey: required("CLOUDFLARE_R2_SECRET_ACCESS_KEY"),
   },
 });
